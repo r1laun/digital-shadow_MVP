@@ -4,242 +4,564 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Digital Shadow — OSINT Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0e1a;
-    --surface: #111827;
-    --border: #1e2d45;
-    --accent: #00d4ff;
-    --accent2: #7c3aed;
-    --text: #e2e8f0;
-    --muted: #64748b;
-    --danger: #ef4444;
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --accent: #e63946;
+    --accent2: #ff6b6b;
+    --text: #ffffff;
+    --muted: #666666;
+    --muted2: #999999;
+    --success: #22c55e;
     --warning: #f59e0b;
-    --success: #10b981;
+    --danger: #ef4444;
     --critical: #dc2626;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; min-height: 100vh; }
 
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 16px 32px;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: space-between;
+    padding: 24px 48px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .nav-logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .nav-logo span { color: var(--accent); }
+
+  .nav-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted2);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); } 50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(34,197,94,0); } }
+
+  /* HERO */
+  .hero {
+    padding: 80px 48px 64px;
+    border-bottom: 1px solid var(--border);
+    background: radial-gradient(ellipse at 20% 50%, rgba(230,57,70,0.08) 0%, transparent 60%);
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(230,57,70,0.1);
+    border: 1px solid rgba(230,57,70,0.2);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted2);
+    font-weight: 400;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+
+  /* SEARCH */
+  .search-section {
+    padding: 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 0;
+    max-width: 800px;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: var(--text);
+    padding: 18px 24px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    outline: none;
+    transition: border-color 0.2s;
+    border-radius: 0;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  .search-btn {
+    background: var(--accent);
+    color: white;
+    border: 1px solid var(--accent);
+    padding: 18px 36px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover { background: #c1121f; border-color: #c1121f; }
+
+  /* LOADING */
+  .loading {
+    display: none;
+    padding: 48px;
+    font-size: 13px;
+    color: var(--muted2);
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .loading.active { display: flex; align-items: center; gap: 12px; }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULT */
+  .result-section { padding: 48px; border-bottom: 1px solid var(--border); }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .result-cell {
+    background: var(--surface);
+    padding: 28px 32px;
+  }
+
+  .cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .cell-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  .cell-value.accent { color: var(--accent); }
+
+  .risk-низкий { color: var(--success) !important; }
+  .risk-средний { color: var(--warning) !important; }
+  .risk-высокий { color: var(--danger) !important; }
+  .risk-критический { color: var(--critical) !important; }
+
+  /* Score bar */
+  .score-bar-wrap { margin-top: 12px; }
+  .score-bar {
+    height: 3px;
+    background: var(--border);
+    margin-top: 8px;
+  }
+  .score-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 1s ease;
+  }
+
+  /* Summary block */
+  .summary-block {
+    border: 1px solid var(--border);
+    padding: 32px;
+    margin-bottom: 24px;
     background: var(--surface);
   }
-  .logo { font-size: 20px; font-weight: bold; color: var(--accent); letter-spacing: 2px; }
-  .logo span { color: var(--accent2); }
-  .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; margin-left: auto; }
-  .status-label { font-size: 11px; color: var(--success); letter-spacing: 1px; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
-
-  .search-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-  .search-form { display: flex; gap: 12px; margin-bottom: 32px; }
-  .search-input {
-    flex: 1; background: var(--surface); border: 1px solid var(--border);
-    color: var(--text); padding: 14px 20px; font-family: 'Courier New', monospace;
-    font-size: 14px; outline: none; transition: border-color 0.2s;
+  .summary-block p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--muted2);
+    font-weight: 400;
   }
-  .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,212,255,0.1); }
-  .search-input::placeholder { color: var(--muted); }
-  .search-btn {
-    background: var(--accent); color: var(--bg); border: none;
-    padding: 14px 28px; font-family: 'Courier New', monospace;
-    font-size: 13px; font-weight: bold; letter-spacing: 1px; cursor: pointer;
+
+  /* Entities */
+  .entities { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0; }
+  .entity-tag {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: border-color 0.2s, color 0.2s;
   }
-  .search-btn:hover { opacity: 0.85; }
+  .entity-tag:hover { border-color: var(--accent); color: var(--accent); }
 
-  .result-card {
-    background: var(--surface); border: 1px solid var(--border);
-    padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden;
+  /* Recommendation */
+  .rec-block {
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    background: rgba(230,57,70,0.04);
+    margin-bottom: 24px;
   }
-  .result-card::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 3px; height: 100%; background: var(--risk-color, var(--accent));
+  .rec-label { font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .rec-block p { font-size: 14px; color: var(--muted2); line-height: 1.6; }
+
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
   }
-  .result-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
-  .result-query { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; }
-  .result-category { font-size: 18px; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
-  .risk-badge { padding: 6px 16px; font-size: 12px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; border: 1px solid currentColor; }
-  .risk-низкий { color: var(--success); }
-  .risk-средний { color: var(--warning); }
-  .risk-высокий { color: var(--danger); }
-  .risk-критический { color: var(--critical); background: rgba(220,38,38,0.1); }
 
-  .score-section { margin: 20px 0; }
-  .score-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; display: flex; justify-content: space-between; }
-  .score-bar { height: 6px; background: var(--border); overflow: hidden; }
-  .score-fill { height: 100%; background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444); }
+  /* POSTS */
+  .posts-section { padding: 0 48px 48px; border-bottom: 1px solid var(--border); }
 
-  .summary { font-size: 14px; line-height: 1.6; margin: 16px 0; padding: 12px 16px; border-left: 2px solid var(--border); }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-top: 48px;
+  }
 
-  .entities { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
-  .entity-tag { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); color: var(--accent); padding: 4px 10px; font-size: 12px; }
+  .section-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
 
-  .recommendation { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); padding: 12px 16px; font-size: 13px; color: #a78bfa; margin-top: 16px; }
-  .rec-label { font-size: 10px; letter-spacing: 2px; color: var(--accent2); margin-bottom: 4px; }
-
-  .ai-footer { font-size: 11px; color: var(--muted); margin-top: 16px; display: flex; justify-content: space-between; }
-
-  .section-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .section-count {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
 
   .post-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-left: 3px solid var(--accent2);
-    padding: 16px 20px; margin-bottom: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px 28px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
   }
-  .post-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-  .post-channel { font-size: 12px; color: var(--accent); font-weight: bold; }
-  .post-username { font-size: 11px; color: var(--accent2); }
-  .post-date { font-size: 11px; color: var(--muted); }
-  .post-text { font-size: 13px; color: var(--text); line-height: 1.6; }
-  .post-link { font-size: 11px; color: var(--accent); text-decoration: none; margin-top: 8px; display: inline-block; }
+
+  .post-card:hover { border-color: #333; }
+
+  .post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .post-channel {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .post-username {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-left: 8px;
+  }
+
+  .post-date {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .post-text {
+    font-size: 14px;
+    color: var(--muted2);
+    line-height: 1.7;
+  }
+
+  .post-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+
   .post-link:hover { text-decoration: underline; }
 
-  .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .history-table th { text-align: left; padding: 8px 12px; font-size: 10px; letter-spacing: 1px; color: var(--muted); border-bottom: 1px solid var(--border); }
-  .history-table td { padding: 10px 12px; border-bottom: 1px solid rgba(30,45,69,0.5); }
-  .history-table tr:hover td { background: rgba(255,255,255,0.02); }
-  .score-pill { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: bold; }
+  /* HISTORY */
+  .history-section { padding: 48px; }
 
-  .loading { display: none; text-align: center; padding: 40px; color: var(--muted); font-size: 13px; letter-spacing: 2px; }
-  .loading.active { display: block; }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-  .blink { animation: blink 1s infinite; }
+  .history-table { width: 100%; border-collapse: collapse; }
+  .history-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .history-table td {
+    padding: 16px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted2);
+  }
+  .history-table tr:hover td { background: var(--surface); }
+  .history-table td:nth-child(2) { color: var(--text); font-weight: 500; }
+  .history-table td:nth-child(3) { color: var(--accent); font-weight: 600; }
+
+  .score-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 2px;
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">DIGITAL<span>SHADOW</span></div>
-  <div style="font-size:11px; color:var(--muted); letter-spacing:1px;">OSINT THREAT MONITOR / KZ</div>
-  <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Digital<span>Shadow</span></div>
+  <div class="nav-status">
     <div class="status-dot"></div>
-    <div class="status-label">СИСТЕМА АКТИВНА</div>
+    Система активна
   </div>
-</header>
+</nav>
 
-<main>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">● OSINT Intelligence Platform</div>
+  <h1>Мониторинг<br>угроз <span>в реальном</span><br>времени</h1>
+  <p class="hero-sub">Автоматическое обнаружение незаконной активности в открытых источниках и Telegram с AI-анализом угроз.</p>
+</div>
 
-  <div class="search-label">// запрос оперативника</div>
+<!-- SEARCH -->
+<div class="search-section">
+  <div class="search-label">Поисковый запрос</div>
   <form class="search-form" method="post" action="/search" onsubmit="showLoading()">
     <input class="search-input" type="text" name="query"
-      placeholder="Введите никнейм / ключевое слово / крипто-адрес..."
+      placeholder="Никнейм, ключевое слово, крипто-адрес..."
       value="{{ query or '' }}" autocomplete="off" required>
-    <button class="search-btn" type="submit">[ АНАЛИЗ ]</button>
+    <button class="search-btn" type="submit">Анализировать →</button>
   </form>
+</div>
 
-  <div class="loading" id="loading">
-    <span class="blink">▋</span> СКАНИРОВАНИЕ ИСТОЧНИКОВ...
-  </div>
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  Сканирование источников...
+</div>
 
-  {% if result %}
-  {% set risk = result.risk_level %}
-  {% set score = result.risk_score %}
-  <div class="result-card" style="
-    --risk-color: {% if risk == 'критический' %}#dc2626{% elif risk == 'высокий' %}#ef4444{% elif risk == 'средний' %}#f59e0b{% else %}#10b981{% endif %};
-  ">
-    <div class="result-header">
-      <div>
-        <div class="result-query">// запрос: "{{ result.query }}"</div>
-        <div class="result-category">{{ result.category }}</div>
-      </div>
-      <div class="risk-badge risk-{{ risk }}">{{ risk }}</div>
+{% if result %}
+{% set risk = result.risk_level %}
+{% set score = result.risk_score %}
+
+<!-- RESULT -->
+<div class="result-section">
+
+  <div class="result-grid">
+    <div class="result-cell">
+      <div class="cell-label">Категория угрозы</div>
+      <div class="cell-value accent">{{ result.category }}</div>
     </div>
-
-    <div class="score-section">
-      <div class="score-label">
-        <span>ИНДЕКС УГРОЗЫ</span>
-        <span>{{ score }}/100</span>
-      </div>
-      <div class="score-bar">
-        <div class="score-fill" style="width: {{ score }}%;"></div>
-      </div>
+    <div class="result-cell">
+      <div class="cell-label">Уровень риска</div>
+      <div class="cell-value risk-{{ risk }}">{{ risk }}</div>
     </div>
-
-    <div class="summary">{{ result.summary }}</div>
-
-    {% if result.entities %}
-    <div class="entities">
-      {% for entity in result.entities %}
-      <span class="entity-tag"># {{ entity }}</span>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="recommendation">
-      <div class="rec-label">// РЕКОМЕНДАЦИЯ</div>
-      {{ result.recommendation }}
-    </div>
-
-    <div class="ai-footer">
-      <span>⚡ AI: LLaMA3-70B via Groq API</span>
-      <span>Обработано постов: {{ result.posts_count }}</span>
-    </div>
-  </div>
-
-  {% if posts %}
-  <div style="margin-bottom:32px;">
-    <div class="section-title">// источники — найденные посты ({{ posts|length }})</div>
-    {% for post in posts %}
-    <div class="post-card">
-      <div class="post-meta">
-        <div>
-          <span class="post-channel">📡 {{ post.channel }}</span>
-          {% if post.username %}
-          <span class="post-username"> {{ post.username }}</span>
-          {% endif %}
+    <div class="result-cell">
+      <div class="cell-label">Индекс угрозы</div>
+      <div class="cell-value">{{ score }}<span style="font-size:16px; color:var(--muted); font-weight:400;">/100</span></div>
+      <div class="score-bar-wrap">
+        <div class="score-bar">
+          <div class="score-fill" style="width:{{ score }}%;
+            background: {% if score > 75 %}#ef4444{% elif score > 50 %}#f59e0b{% else %}#22c55e{% endif %};
+          "></div>
         </div>
-        <span class="post-date">🕐 {{ post.date }}</span>
       </div>
-      <div class="post-text">{{ post.text }}</div>
-      {% if post.link %}
-      <a class="post-link" href="{{ post.link }}" target="_blank">→ открыть в Telegram</a>
-      {% endif %}
     </div>
+    <div class="result-cell">
+      <div class="cell-label">Источников проанализировано</div>
+      <div class="cell-value">{{ result.posts_count }}</div>
+    </div>
+  </div>
+
+  <div class="summary-block">
+    <div class="cell-label" style="margin-bottom:14px;">Анализ</div>
+    <p>{{ result.summary }}</p>
+  </div>
+
+  {% if result.entities %}
+  <div class="entities">
+    {% for entity in result.entities %}
+    <span class="entity-tag">{{ entity }}</span>
     {% endfor %}
   </div>
   {% endif %}
-  {% endif %}
 
-  {% if history %}
-  <div>
-    <div class="section-title">// история запросов</div>
-    <table class="history-table">
-      <thead>
-        <tr>
-          <th>ВРЕМЯ</th>
-          <th>ЗАПРОС</th>
-          <th>КАТЕГОРИЯ</th>
-          <th>УРОВЕНЬ</th>
-          <th>SCORE</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for h in history %}
-        <tr>
-          <td style="color:var(--muted); font-size:12px;">{{ h.created_at }}</td>
-          <td>{{ h.query }}</td>
-          <td style="color:var(--accent);">{{ h.category }}</td>
-          <td class="risk-{{ h.risk_level }}">{{ h.risk_level }}</td>
-          <td>
-            <span class="score-pill" style="
-              background: rgba({% if h.risk_score > 75 %}239,68,68{% elif h.risk_score > 50 %}245,158,11{% else %}16,185,129{% endif %},0.15);
-              color: {% if h.risk_score > 75 %}#ef4444{% elif h.risk_score > 50 %}#f59e0b{% else %}#10b981{% endif %};
-            ">{{ h.risk_score }}</span>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="rec-block">
+    <div class="rec-label">Рекомендация</div>
+    <p>{{ result.recommendation }}</p>
   </div>
-  {% endif %}
 
-</main>
+  <div class="ai-badge">
+    <span style="color:var(--accent);">●</span>
+    AI: LLaMA3-70B · Groq API
+  </div>
+
+</div>
+
+<!-- POSTS -->
+{% if posts %}
+<div class="posts-section">
+  <div class="section-header">
+    <div class="section-title">Найденные источники</div>
+    <div class="section-count">{{ posts|length }} постов</div>
+  </div>
+
+  {% for post in posts %}
+  <div class="post-card">
+    <div class="post-meta">
+      <div>
+        <span class="post-channel">{{ post.channel }}</span>
+        {% if post.username %}
+        <span class="post-username">{{ post.username }}</span>
+        {% endif %}
+      </div>
+      <span class="post-date">{{ post.date }}</span>
+    </div>
+    <div class="post-text">{{ post.text }}</div>
+    {% if post.link %}
+    <a class="post-link" href="{{ post.link }}" target="_blank">Открыть в Telegram ↗</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endif %}
+
+<!-- HISTORY -->
+{% if history %}
+<div class="history-section">
+  <div class="section-header">
+    <div class="section-title">История запросов</div>
+    <div class="section-count">{{ history|length }} записей</div>
+  </div>
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th>Время</th>
+        <th>Запрос</th>
+        <th>Категория</th>
+        <th>Уровень</th>
+        <th>Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in history %}
+      <tr>
+        <td>{{ h.created_at }}</td>
+        <td>{{ h.query }}</td>
+        <td>{{ h.category }}</td>
+        <td class="risk-{{ h.risk_level }}">{{ h.risk_level }}</td>
+        <td>
+          <span class="score-badge" style="
+            background: rgba({% if h.risk_score > 75 %}239,68,68{% elif h.risk_score > 50 %}245,158,11{% else %}34,197,94{% endif %},0.12);
+            color: {% if h.risk_score > 75 %}#ef4444{% elif h.risk_score > 50 %}#f59e0b{% else %}#22c55e{% endif %};
+          ">{{ h.risk_score }}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
 
 <script>
 function showLoading() {
