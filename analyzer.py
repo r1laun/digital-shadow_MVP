@@ -38,13 +38,13 @@ async def analyze_threat(query: str, posts: list[dict]) -> dict:
 
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="gpt-oss-120b",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message},
             ],
             temperature=0.1,
-            max_tokens=500,
+            max_tokens=1000,
         )
 
         raw = response.choices[0].message.content.strip()
