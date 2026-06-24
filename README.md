@@ -21,7 +21,7 @@ AI-powered intelligence platform for detecting illegal activity across open inte
 ## Features
 
 - **OSINT Search** — scan Telegram channels and public sources
-- **AI Analysis** — LLaMA3-70B classifies threats via Groq API
+- **AI Analysis** — GPT-OSS: 120B classifies threats via Groq API
 - **Risk Scoring** — 0–100 threat index with category detection
 - **History** — SQLite log of all analyst queries
 - **Cybersecurity UI** — dark dashboard interface
