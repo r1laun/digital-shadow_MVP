@@ -3,7 +3,11 @@
 
 **OSINT Threat Monitoring System for Kazakhstan**
 
-https://digital-shadow-mvp.onrender.com
+## Демо
+
+[Открыть сайт](https://digital-shadow-mvp.onrender.com)
+
+---
 
 AI-powered intelligence platform for detecting illegal activity across open internet and Telegram sources.
 
