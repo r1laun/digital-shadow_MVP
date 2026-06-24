@@ -70,7 +70,7 @@ TELEGRAM_API_HASH=your_telegram_hash  # from my.telegram.org (optional)
 ## Stack
 
 - **Backend** — FastAPI + Uvicorn
-- **AI** — Groq API (LLaMA3-70B)
+- **AI** — Groq API (GPT-OSS: 120B)
 - **Data** — Telethon (Telegram), SQLite
 - **Frontend** — Jinja2 + Vanilla HTML/CSS
 
@@ -86,7 +86,6 @@ digital-shadow/
 ├── database.py      # SQLite history
 ├── templates/
 │   └── index.html   # Cybersecurity dashboard UI
-├── vercel.json      # Vercel deployment config
 └── requirements.txt
 ```
 
