@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-jinja2
-python-multipart
-groq
-telethon
-python-dotenv
