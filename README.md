@@ -61,17 +61,6 @@ TELEGRAM_API_HASH=your_telegram_hash  # from my.telegram.org (optional)
 
 ---
 
-## Deploy on Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/digital-shadow)
-
-1. Fork this repo
-2. Connect to [vercel.com](https://vercel.com)
-3. Add environment variables in Vercel dashboard
-4. Deploy
-
----
-
 ## Stack
 
 - **Backend** — FastAPI + Uvicorn
