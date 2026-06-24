@@ -16,7 +16,13 @@ async def startup():
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     history = get_history()
-    return templates.TemplateResponse("index.html", {"request": request, "history": history})
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "history": history,
+        "posts": [],
+        "result": None,
+        "query": ""
+    })
 
 @app.post("/search", response_class=HTMLResponse)
 async def search(request: Request, query: str = Form(...)):
@@ -27,6 +33,7 @@ async def search(request: Request, query: str = Form(...)):
     return templates.TemplateResponse("index.html", {
         "request": request,
         "result": result,
+        "posts": posts,
         "query": query,
         "history": history
     })
